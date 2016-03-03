@@ -8,14 +8,14 @@ import java.util.List;
 /**
  * Created by jose on 3/2/16.
  */
-public class GetWordDiagonalBottomLeftTopRight implements Strategy {
+public class GetWordDiagonalTopRightBottomLeft implements Strategy {
     char[][] board;
     int squareSize;
     int colPos;
     int rowPos;
     int numberOfLetters;
 
-    public GetWordDiagonalBottomLeftTopRight(char[][] board, int colPos, int rowPos, int numberOfLetters){
+    public GetWordDiagonalTopRightBottomLeft(char[][] board, int colPos, int rowPos, int numberOfLetters){
         this.board = board;
         this.colPos = colPos;
         this.rowPos = rowPos;
@@ -35,15 +35,15 @@ public class GetWordDiagonalBottomLeftTopRight implements Strategy {
             Letter letter = new Letter(board[currentColPos][currentRowPos], currentRowPos+1, currentColPos+1);
             letters.add(letter);
 
-            if (currentColPos == 0) {
-                currentColPos = currentRowPos;
-                currentRowPos = 0;
+            if (currentRowPos == 0) {
+                currentRowPos = currentColPos;
+                currentColPos = 0;
             } else {
-                currentColPos--;
-                if (currentRowPos == squareSize-1) {
-                    currentRowPos = 0;
+                currentRowPos--;
+                if (currentColPos == squareSize-1) {
+                    currentColPos = 0;
                 } else {
-                    currentRowPos++;
+                    currentColPos++;
                 }
             }
 

@@ -3,6 +3,7 @@ package com.jose.wordsearch;
 import com.jose.wordsearch.strategy.GetWordDiagonalBottomLeftTopRight;
 import com.jose.wordsearch.strategy.GetWordDiagonalBottomRightTopLeft;
 import com.jose.wordsearch.strategy.GetWordDiagonalTopLeftBottomRight;
+import com.jose.wordsearch.strategy.GetWordDiagonalTopRightBottomLeft;
 import com.jose.wordsearch.strategy.GetWordHorizontalBackwards;
 import com.jose.wordsearch.strategy.GetWordHorizontalForward;
 import com.jose.wordsearch.strategy.GetWordVerticalBackwards;
@@ -75,7 +76,7 @@ public class Solution {
 //        words.add("strange");
 //        words.add("uncommon");
         words.add("sun");   // diagonal forward test
-        words.add("notthere");
+        words.add("doesNotExist");
         words.add("rpes"); // should wrao diagonally forward
 
         // Start looking for words in the puzzle
@@ -101,8 +102,8 @@ public class Solution {
                     search(result, word);
                     result = new GetWordDiagonalBottomLeftTopRight(board, i,j,word.length()).execute();
                     search(result, word);
-//                    result = new GetWordDiagonalTopRightBottomLeft(board, i,j,word.length()).execute();
-//                    search(result, word);
+                    result = new GetWordDiagonalTopRightBottomLeft(board, i,j,word.length()).execute();
+                    search(result, word);
                 }
             }
         }
