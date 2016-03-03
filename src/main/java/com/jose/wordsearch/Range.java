@@ -1,9 +1,11 @@
 package com.jose.wordsearch;
 
+import com.jose.wordsearch.strategy.Strategy;
+
 /**
  * Created by jose on 3/2/16.
  */
-class Range {
+public class Range {
     Coordinate startPos;
     Coordinate endPos;
 
@@ -26,14 +28,8 @@ class Range {
      * @param squareSize    after thought - we need to know the max size of the puzzle to handle wrapping; FIXME!
      * @return              a boolean if within this range or not
      */
-    public boolean isWithinRange(Coordinate coordinate, int squareSize) {
-        boolean isWithinRange = false;
-
-        // TODO: Out of time - Range should probably also include a variable indicating direction (e.g. TopLeftBottomRight)
-        // that's the only way we're going to effectively determine which search strategy to implement since having the start + end
-        // positions is not sufficient.
-
-        return false;   // dummy value
+    public boolean isWithinRange(Strategy strategy, Coordinate coordinate, int squareSize) {
+        return strategy.inRange(this, coordinate, squareSize);
     }
 
     @Override

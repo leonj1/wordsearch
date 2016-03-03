@@ -8,6 +8,7 @@ import com.jose.wordsearch.strategy.GetWordHorizontalBackwards;
 import com.jose.wordsearch.strategy.GetWordHorizontalForward;
 import com.jose.wordsearch.strategy.GetWordVerticalBackwards;
 import com.jose.wordsearch.strategy.GetWordVerticalForwards;
+import com.jose.wordsearch.strategy.Strategy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,13 +19,20 @@ import java.util.Map;
 /**
  * Programmatically play the word search game
  * Created by Jose Leon on 3/2/16.
+ *
+ * Write a function that takes a word and a grid of letters (the word search puzzle).
+ This function should return the start position and end position of the word in the word search puzzle.
+
+ The word should never be empty.
+ The puzzle should never be empty.
+ There should only be letter a-z in both the grid and the word.
+ The word may not exist in the puzzle.
+ The word can be in the grid horizontal, vertical, or diagonal. The word can be forwards or backwards in the grid. The word may wrap around the puzzle.
+ The word cannot use any position in the grid twice.
  */
 public class Solution {
-    static private Map<String, Range> puzzleResults = new HashMap<>();;
-    static private Map<String, List<Range>> puzzleResults2 = new HashMap<>();
-
-    static private int OUTER_LOOP = 0;
-    static private int INNER_LOOP = 0;
+//    static private Map<String, Range> puzzleResults = new HashMap<>();
+    static private Map<String, List<Range>> puzzleResults = new HashMap<>();
 
     static private char[][] board;
     static int squareSize;
@@ -73,15 +81,15 @@ public class Solution {
         List<String> words = new ArrayList<>();
         words.add("pit");   // horizontal check
         words.add("assorted");  // vertical check
-        words.add("confuse");   // this should not use : confuse [9, 8] -> [3, 8]
+        words.add("confuse");   // this should not be found since there are dupe positions with confused
         words.add("confused");  // vertical check
         words.add("distinct");  // vertical backwards check
         words.add("singular");  // diagonal backwards check
         words.add("sun");       // diagonal forward test
         words.add("doesNotExist");  // should show as Not Found
         words.add("rpes");      // should wrao diagonally forward
-        words.add("ha");        // next two should not have the same coordinates
-        words.add("haha");
+        words.add("haha");      // next two should not have the same coordinates
+        words.add("ha");        // if these two are switched order, there's an edge case that needs sorting
 
         // Start looking for words in the puzzle
         for(String word : words) {
@@ -91,24 +99,14 @@ public class Solution {
                 for(int j=0; j<squareSize; j++) {
                     // Look for the word once per strategy at each coordinate
                     // Strategies do NOT search for the word. They simply return a string from the puzzle of word.length
-                    Letter[] result = new GetWordHorizontalForward(board, i,j, word.length()).execute();
-                    // search() is where we determine if the returned word matches the word we're searching for.
-                    // TODO: There should be a more elegant way to code this instead of like this
-                    search(result, word);
-                    result = new GetWordHorizontalBackwards(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordVerticalForwards(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordVerticalBackwards(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordDiagonalTopLeftBottomRight(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordDiagonalBottomRightTopLeft(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordDiagonalBottomLeftTopRight(board, i,j,word.length()).execute();
-                    search(result, word);
-                    result = new GetWordDiagonalTopRightBottomLeft(board, i,j,word.length()).execute();
-                    search(result, word);
+                    applyStrategy(new GetWordHorizontalForward(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordHorizontalBackwards(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordVerticalForwards(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordVerticalBackwards(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordDiagonalTopLeftBottomRight(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordDiagonalBottomRightTopLeft(board, i, j, word.length()), word);
+                    applyStrategy(new GetWordDiagonalBottomLeftTopRight(board, i,j,word.length()), word);
+                    applyStrategy(new GetWordDiagonalTopRightBottomLeft(board, i, j, word.length()), word);
                 }
             }
         }
@@ -121,22 +119,7 @@ public class Solution {
         }
 
         System.out.println("Puzzle Results");
-        for (Map.Entry<String, Range> entry : puzzleResults.entrySet()) {
-            String key = entry.getKey();
-            Range value = entry.getValue();
-
-            String locationFound;
-            if (value == null) {
-                locationFound = "Not Found";
-            } else {
-                locationFound = String.format("%s -> %s", value.getStartPos(), value.getEndPos());
-            }
-
-            System.out.println(String.format("%s %s", key, locationFound));
-        }
-
-        System.out.println("\n\nPuzzle Results : Trying to remove already used coordinates");
-        for (Map.Entry<String, List<Range>> entry : puzzleResults2.entrySet()) {
+        for (Map.Entry<String, List<Range>> entry : puzzleResults.entrySet()) {
             String key = entry.getKey();
             List<Range> value = entry.getValue();
 
@@ -155,32 +138,34 @@ public class Solution {
         }
     }
 
-    private static void search(Letter[] result, String word) {
+    private static void applyStrategy(Strategy strategy, String word) {
+        Letter[] result = strategy.execute();
+        search(result, word, strategy);
+    }
+
+    private static void search(Letter[] result, String word, Strategy strategy) {
         if (checkResult(result, word)) {
             // get the coordinate in the puzzle of the first letter in the word
             Coordinate firstLetter = new Coordinate(result[0].colPos, result[0].rowPos);
             // get the coordinate in the puzzle of the last letter in the word
             Coordinate lastLetter = new Coordinate(result[result.length - 1].colPos, result[result.length - 1].rowPos);
 
-            // TODO: Remove this once we figure out how to remove duplicate used coordinates
-            puzzleResults.put(word, new Range(firstLetter, lastLetter));
-
             Range foundRange = new Range(firstLetter, lastLetter);
 
             List<Range> coordinates;
-            if (!puzzleResults2.containsKey(word)) {
+            if (!puzzleResults.containsKey(word)) {
                 coordinates = new ArrayList<> ();
             } else {
-                coordinates = puzzleResults2.get(word);
+                coordinates = puzzleResults.get(word);
             }
 
             // Only add the Range if no other word already claimed it
             // TODO: This should really live somewhere else since this method is now doing too much; out of time to refactor
-            Collection<List<Range>> allFoundCoordinates = puzzleResults2.values();
+            Collection<List<Range>> allFoundCoordinates = puzzleResults.values();
             boolean alreadyExists = false;
             for (List<Range> rangeList : allFoundCoordinates) {
                 for(Range range : rangeList) {
-                    if (range.isWithinRange(foundRange.getStartPos(), squareSize)) {
+                    if (range.isWithinRange(strategy, foundRange.getStartPos(), squareSize)) {
                         alreadyExists = true;
                     }
                 }
@@ -188,7 +173,7 @@ public class Solution {
 
             if (!alreadyExists) {
                 coordinates.add(foundRange);
-                puzzleResults2.put(word, coordinates);
+                puzzleResults.put(word, coordinates);
             }
         }
     }
