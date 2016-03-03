@@ -101,6 +101,8 @@ public class Solution {
                     search(result, word);
                     result = new GetWordDiagonalBottomLeftTopRight(board, i,j,word.length()).execute();
                     search(result, word);
+//                    result = new GetWordDiagonalTopRightBottomLeft(board, i,j,word.length()).execute();
+//                    search(result, word);
                 }
             }
         }

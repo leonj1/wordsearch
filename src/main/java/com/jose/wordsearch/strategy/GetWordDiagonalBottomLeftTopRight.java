@@ -35,16 +35,16 @@ public class GetWordDiagonalBottomLeftTopRight implements Strategy {
             Letter letter = new Letter(board[currentColPos][currentRowPos], currentRowPos+1, currentColPos+1);
             letters.add(letter);
 
-            if (currentRowPos == 0) {
-                int temp = currentRowPos;
-                currentRowPos = currentColPos;
-                currentColPos = temp;
+            if (currentColPos == 0) {
+                int temp = currentColPos;
+                currentColPos = currentRowPos;
+                currentRowPos = temp;
             } else {
-                currentRowPos--;
-                if (currentColPos == squareSize-1) {
-                    currentColPos = 0;
+                currentColPos--;
+                if (currentRowPos == squareSize-1) {
+                    currentRowPos = 0;
                 } else {
-                    currentColPos++;
+                    currentRowPos++;
                 }
             }
 
