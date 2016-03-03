@@ -43,6 +43,7 @@ public class Solution {
         String[] linesInPuzzle = puzzle.split("\n");
         // TODO: Verify puzzle meets criteria - should puzzle be a square? Assume so for now
 
+        // Lets figure out the size of the puzzle from the length of the first line since, for now, we expect a square puzzle
         String[] line1 = linesInPuzzle[0].split(" ");
         int squareSize = line1.length;
         board = new char[squareSize][squareSize];
@@ -55,6 +56,8 @@ public class Solution {
             }
         }
 
+        // A set of words to search
+        // helps us test each scenario; this would typically be in unit tests, but short on time
         List<String> words = new ArrayList<>();
         words.add("pit");   // horizontal check
         words.add("assorted");  // vertical check
@@ -74,15 +77,17 @@ public class Solution {
         words.add("sun");   // diagonal forward test
         words.add("notthere");
         words.add("rpes"); // should wrao diagonally forward
-//        puzzleResults = new HashMap<>();
 
-        // Start looking for words
+        // Start looking for words in the puzzle
         for(String word : words) {
-            // Start at puzzle row by row
+            // Start searching the puzzle row by row
             for(int i=0; i<squareSize; i++) {
-                // get me a string from the puzzle of length WORD in direction FOO
+                // Now searching column by column
                 for(int j=0; j<squareSize; j++) {
-                    Letter[] result = new GetWordHorizontalForward(board, i, j, word.length()).execute();
+                    // Look for the word once per strategy at each coordinate
+                    // Strategies do NOT search for the word. They simply return a string from the puzzle of word.length
+                    Letter[] result = new GetWordHorizontalForward(board, i,j, word.length()).execute();
+                    // search() is where we determine if the returned word matches the word we're searching for.
                     search(result, word);
                     result = new GetWordHorizontalBackwards(board, i,j,word.length()).execute();
                     search(result, word);
@@ -100,7 +105,7 @@ public class Solution {
             }
         }
 
-        // Now backfill any words that where not found - surely there's a more elegant way to do this
+        // Now back fill any words that where not found - surely there's a more elegant way to do this
         for(String word : words) {
             if (!puzzleResults.containsKey(word)) {
                 puzzleResults.put(word, null);
