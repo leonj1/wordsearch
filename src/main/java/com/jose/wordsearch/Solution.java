@@ -10,6 +10,7 @@ import com.jose.wordsearch.strategy.GetWordVerticalBackwards;
 import com.jose.wordsearch.strategy.GetWordVerticalForwards;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +21,13 @@ import java.util.Map;
  */
 public class Solution {
     static private Map<String, Range> puzzleResults = new HashMap<>();;
-    static private Map<String, List<Range>> puzzleResults2 = new HashMap<>();;
+    static private Map<String, List<Range>> puzzleResults2 = new HashMap<>();
+
+    static private int OUTER_LOOP = 0;
+    static private int INNER_LOOP = 0;
 
     static private char[][] board;
+    static int squareSize;
 
     public static void main(String[] args) {
 
@@ -52,7 +57,7 @@ public class Solution {
 
         // Lets figure out the size of the puzzle from the length of the first line since, for now, we expect a square puzzle
         String[] line1 = linesInPuzzle[0].split(" ");
-        int squareSize = line1.length;
+        squareSize = line1.length;
         board = new char[squareSize][squareSize];
 
         // Put the Puzzle string into a char array or arrays
@@ -88,6 +93,7 @@ public class Solution {
                     // Strategies do NOT search for the word. They simply return a string from the puzzle of word.length
                     Letter[] result = new GetWordHorizontalForward(board, i,j, word.length()).execute();
                     // search() is where we determine if the returned word matches the word we're searching for.
+                    // TODO: There should be a more elegant way to code this instead of like this
                     search(result, word);
                     result = new GetWordHorizontalBackwards(board, i,j,word.length()).execute();
                     search(result, word);
@@ -107,8 +113,6 @@ public class Solution {
             }
         }
 
-        // TODO: Remove any coordinate that was used in another word
-
         // Now back fill any words that where not found - surely there's a more elegant way to do this
         for(String word : words) {
             if (!puzzleResults.containsKey(word)) {
@@ -126,6 +130,25 @@ public class Solution {
                 locationFound = "Not Found";
             } else {
                 locationFound = String.format("%s -> %s", value.getStartPos(), value.getEndPos());
+            }
+
+            System.out.println(String.format("%s %s", key, locationFound));
+        }
+
+        System.out.println("\n\nPuzzle Results : Trying to remove already used coordinates");
+        for (Map.Entry<String, List<Range>> entry : puzzleResults2.entrySet()) {
+            String key = entry.getKey();
+            List<Range> value = entry.getValue();
+
+            String locationFound;
+            if (value == null) {
+                locationFound = "Not Found";
+            } else {
+                StringBuilder sb = new StringBuilder();
+                for(Range range : value) {
+                    sb.append(String.format("%s -> %s, ", range.getStartPos(), range.getEndPos()));
+                }
+                locationFound = sb.toString();
             }
 
             System.out.println(String.format("%s %s", key, locationFound));
@@ -151,8 +174,22 @@ public class Solution {
                 coordinates = puzzleResults2.get(word);
             }
 
-            coordinates.add(foundRange);
-            puzzleResults2.put(word, coordinates);
+            // Only add the Range if no other word already claimed it
+            // TODO: This should really live somewhere else since this method is now doing too much; out of time to refactor
+            Collection<List<Range>> allFoundCoordinates = puzzleResults2.values();
+            boolean alreadyExists = false;
+            for (List<Range> rangeList : allFoundCoordinates) {
+                for(Range range : rangeList) {
+                    if (range.isWithinRange(foundRange.getStartPos(), squareSize)) {
+                        alreadyExists = true;
+                    }
+                }
+            }
+
+            if (!alreadyExists) {
+                coordinates.add(foundRange);
+                puzzleResults2.put(word, coordinates);
+            }
         }
     }
 
