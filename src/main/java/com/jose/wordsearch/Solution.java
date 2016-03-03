@@ -20,23 +20,29 @@ import java.util.Map;
  */
 public class Solution {
     static private Map<String, Range> puzzleResults = new HashMap<>();;
+    static private Map<String, List<Range>> puzzleResults2 = new HashMap<>();;
+
     static private char[][] board;
 
     public static void main(String[] args) {
 
         // Because capital letters are easier to read
+        // Puzzle source from: http://codereview.stackexchange.com/questions/81790/java-word-search-solver
+        // Solution is all original. Mine.
         String puzzle =
-                "B E I E L P I T L U M\n" +
-                "R S P E C I A L M C D\n" +
-                "R R U N C O M M O N A\n" +
-                "S E A N A M E N D T S\n" +
-                "E V T L D O T S I C S\n" +
-                "G I F L U R A D F N O\n" +
-                "N D F E A G Y D Y I R\n" +
-                "A D E S U F N O C T T\n" +
-                "R A T M O S A I C S E\n" +
-                "T T E T A R A P S I D\n" +
-                "S H E E T A I V E D R\n";
+                "B E I E L P I T L U M X X\n" +
+                "R S P E C I A L M C D X X\n" +
+                "R R U N C O M M O N A X X\n" +
+                "S E A N A M E N D T S X X\n" +
+                "E V T L D O T S I C S X X\n" +
+                "G I F L U R A D F N O X X\n" +
+                "N D F E A G Y D Y I R X X\n" +
+                "A D E S U F N O C T T X X\n" +
+                "R A T M O S A I C S E X X\n" +
+                "T T E T A R A P S I D X X\n" +
+                "S H E E T A I V E D R X X\n" +
+                "H A H A H A H A H A H X X\n" +
+                "H A H A H A H A H A H X X\n";
 
         // making lower case since that's whats in the requirements
         puzzle = puzzle.toLowerCase();
@@ -63,21 +69,14 @@ public class Solution {
         words.add("pit");   // horizontal check
         words.add("assorted");  // vertical check
         words.add("confuse");   // this should not use : confuse [9, 8] -> [3, 8]
-        words.add("confused");
-//        words.add("contrast");
-//        words.add("deviate");
-//        words.add("disparate");
-//        words.add("diverse");
+        words.add("confused");  // vertical check
         words.add("distinct");  // vertical backwards check
-//        words.add("mosaics");
-//        words.add("multiple");
         words.add("singular");  // diagonal backwards check
-//        words.add("special");
-//        words.add("strange");
-//        words.add("uncommon");
-        words.add("sun");   // diagonal forward test
-        words.add("doesNotExist");
-        words.add("rpes"); // should wrao diagonally forward
+        words.add("sun");       // diagonal forward test
+        words.add("doesNotExist");  // should show as Not Found
+        words.add("rpes");      // should wrao diagonally forward
+        words.add("ha");        // next two should not have the same coordinates
+        words.add("haha");
 
         // Start looking for words in the puzzle
         for(String word : words) {
@@ -108,6 +107,8 @@ public class Solution {
             }
         }
 
+        // TODO: Remove any coordinate that was used in another word
+
         // Now back fill any words that where not found - surely there's a more elegant way to do this
         for(String word : words) {
             if (!puzzleResults.containsKey(word)) {
@@ -137,8 +138,21 @@ public class Solution {
             Coordinate firstLetter = new Coordinate(result[0].colPos, result[0].rowPos);
             // get the coordinate in the puzzle of the last letter in the word
             Coordinate lastLetter = new Coordinate(result[result.length - 1].colPos, result[result.length - 1].rowPos);
+
+            // TODO: Remove this once we figure out how to remove duplicate used coordinates
             puzzleResults.put(word, new Range(firstLetter, lastLetter));
-            //found, so break out of this loop looking for the word using alternate strategies - really?
+
+            Range foundRange = new Range(firstLetter, lastLetter);
+
+            List<Range> coordinates;
+            if (!puzzleResults2.containsKey(word)) {
+                coordinates = new ArrayList<> ();
+            } else {
+                coordinates = puzzleResults2.get(word);
+            }
+
+            coordinates.add(foundRange);
+            puzzleResults2.put(word, coordinates);
         }
     }
 
